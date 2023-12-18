@@ -12,7 +12,7 @@ import ru.itmo.finalboss.services.PointService;
 @RestController
 @RequestMapping("points")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000") // Указываем домен, с которого разрешено делать запросы
+//@CrossOrigin(origins = ("*")) // Указываем домен, с которого разрешено делать запросы
 public class PointController {
     @Autowired
     private PointService pointService;

@@ -14,7 +14,7 @@ import ru.itmo.finalboss.services.UserService;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000") // Указываем домен, с которого разрешено делать запросы
+//@CrossOrigin(origins = "*") // Указываем домен, с которого разрешено делать запросы
 public class UserController {
     private final UserService userService;
     @PostMapping("/registration")

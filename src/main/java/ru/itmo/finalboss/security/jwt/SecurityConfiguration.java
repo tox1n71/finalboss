@@ -22,9 +22,9 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf()
-                .disable()
-                .cors()
                 .and()
+                .cors()
+                .disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/users/registration", "/users/login").anonymous()
                 .requestMatchers("/users/{id}", "/points/allPoints", "/users/allusers").hasAuthority("ADMIN")
