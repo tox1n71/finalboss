@@ -24,8 +24,8 @@ import static ru.itmo.finalboss.models.User.UserEntityToModel;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    @Autowired
-    private UserRepo userRepo;
+
+    private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authManager;

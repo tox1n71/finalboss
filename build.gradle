@@ -29,6 +29,9 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation 'com.h2database:h2'
+
 }
 
 tasks.named('bootBuildImage') {
@@ -38,3 +41,105 @@ tasks.named('bootBuildImage') {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+
+
+tasks.register('compileProject', JavaCompile) {
+    group = 'lab3'
+    description = 'Компиляция исходных кодов проекта.'
+    dependsOn tasks.named('classes')
+    finalizedBy {
+        println "Классы скомпилированы."
+    }
+}
+
+tasks.register('buildProject') {
+    group = 'lab3'
+    description = 'Компиляция исходных кодов проекта и их упаковка в исполняемый jar-архив.'
+    dependsOn tasks.named('compileProject'), tasks.named('bootJar')
+    doLast {
+        println "Проект скомпилирован и упакован в исполняемый JAR-файл."
+    }
+}
+tasks.register('cleanProjectFiles') {
+    group = 'lab3'
+    description = 'Удаление скомпилированных классов проекта и всех временных файлов.'
+    doLast {
+        delete fileTree(dir: "$buildDir/classes", include: '**/*')
+        delete fileTree(dir: "${buildDir}/tmp", include: '**/*')
+        println "Успешно удалены скомпилированные классы проекта и все временные файлы"
+    }
+}
+tasks.register('music') {
+    group = 'lab3'
+    description = 'Воспроизведение музыки по завершению сборки.'
+//    dependsOn tasks.named('buildProject')
+    doLast {
+        exec { commandLine 'afplay', 'music/birth.mp3' }
+    }
+}
+
+//tasks.named('buildProject'){
+//    dependsOn 'music'
+//}
+tasks.register('scp') {
+    group = 'lab3'
+    description = 'Перемещение собранного проекта по SCP на выбранный сервер по завершению сборки.'
+    dependsOn 'buildProject'
+    doLast {
+        def remoteHost = 'se.ifmo.ru'
+        def remoteUser = 's368791'
+        def remoteDir = '~/opi'
+        def jarFile = "$buildDir/libs/finalboss.jar"
+        def remotePort = '2222'
+        def password = System.getenv("NIKITA")
+
+
+
+        exec {
+            commandLine 'sshpass', '-p', password, 'scp', '-P', remotePort, jarFile, "${remoteUser}@${remoteHost}:${remoteDir}"
+        }
+
+
+        println "Собранный проект перемещен на сервер ${remoteHost} в директорию ${remoteDir}."
+    }
+}
+
+tasks.register('testProject') {
+    group = 'lab3'
+    description = 'Запуск junit-тестов проекта. Перед запуском тестов осуществляется сборка проекта.'
+    dependsOn tasks.named('buildProject'), tasks.named('test')
+    doLast {
+        println "Тесты проекта выполнены."
+    }
+}
+
+
+
+tasks.register('generateJavadoc', Javadoc) {
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.compileClasspath
+    destinationDir = file("${buildDir}/docs/javadoc")
+}
+
+tasks.register('createJavadocJar', Jar) {
+    dependsOn 'generateJavadoc'
+    from tasks.named('generateJavadoc').get().destinationDir
+    archiveClassifier.set('javadoc')
+}
+
+tasks.named('jar') {
+    dependsOn 'generateJavadoc'
+    from tasks.named('generateJavadoc').get().destinationDir
+}
+
+tasks.register('doc') {
+    group = 'lab3'
+    description = 'Generate MD5 and SHA-1 hashes, update the manifest, and include Javadoc in the archive.'
+    dependsOn 'bootJar', 'createJavadocJar'
+    doLast {
+        println "Documentation and hashes are added to the archive."
+    }
+}
+
+

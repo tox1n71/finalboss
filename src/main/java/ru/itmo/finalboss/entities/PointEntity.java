@@ -3,9 +3,14 @@ package ru.itmo.finalboss.entities;
 //import jakarta.persistence.*;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Builder
+@AllArgsConstructor
 public class PointEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

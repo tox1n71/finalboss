@@ -1,10 +1,14 @@
 package ru.itmo.finalboss.services;
 
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.itmo.finalboss.entities.PointEntity;
 import ru.itmo.finalboss.entities.UserEntity;
 import ru.itmo.finalboss.exceptions.IncorrectCoordinatesException;
+import ru.itmo.finalboss.mbeans.AreaCalculatorMBean;
+import ru.itmo.finalboss.mbeans.PointCounterMBean;
 import ru.itmo.finalboss.models.Point;
 import ru.itmo.finalboss.repositories.PointRepo;
 import ru.itmo.finalboss.repositories.UserRepo;
@@ -28,6 +32,12 @@ public class PointService {
     private final UserRepo userRepo;
     private final JwtService jwtService;
 
+    @Autowired
+    private PointCounterMBean pointCounterMBean;
+
+    @Autowired
+    private AreaCalculatorMBean areaCalculatorMBean;
+
     public Point addPoint(String jwtToken, PointEntity point) throws IncorrectCoordinatesException {
         Long userId = Long.valueOf(jwtService.extractUserId(jwtToken));
         if (!validateCoordinates(point.getX(), point.getY(), point.getR())){
@@ -43,6 +53,17 @@ public class PointService {
         UserEntity userEntity = userRepo.findById(userId).get();
         point.setUser(userEntity);
         pointRepo.save(point);
+
+        //Если что падает, то из-за этой хуйни
+        pointCounterMBean.incrementTotalPoints();
+        if (!result) {
+            pointCounterMBean.incrementMissedPoints();
+            areaCalculatorMBean.addPoint(point);
+        } else {
+            pointCounterMBean.resetConsecutiveMisses();
+            areaCalculatorMBean.resetPoints();
+        }
+
         return PointEntitytoModel(point);
 
     }
